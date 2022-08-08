@@ -21,7 +21,7 @@ if (!fileName) {
         const octet = getFirstOctet(getIp(line));
         if (parsed.indexOf(octet)===-1) {
             parsed.push(octet);
-              streams[Number(octet)] = fs.createWriteStream('./parsed/log_' + octet + '.log');
+              streams[Number(octet)] = fs.createWriteStream('./log_' + octet + '.log');
               streams[Number(octet)].write(line +'\n');
         } else {
             streams[Number(octet)].write(line + '\n');

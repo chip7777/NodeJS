@@ -1,58 +1,31 @@
-import fs from 'fs';
-import path from 'path';
 import express from 'express';
+import bodyParser from 'body-parser';
+import ChatRouter from './routes/chats.js';
+import MessageRouter from './routes/messages.js';
+import cowsay from 'cowsay';
+import mongoose from "mongoose";
+import 'dotenv/config';
+
+const URI = 'mongodb://localhost:27017/test'; //process.env.MONGODB_URI 
+
+mongoose.connect(URI).then(() => {
+  console.log(cowsay.say({
+    text : "Mongoose connected",
+    e : "oO",
+    T : "U "
+}));
+}).catch(error => console.log(error));
+
 
 const app = express();
-let dir = '/';
 
-const includeTrailingBackSlash = (dir) => {
-    if (dir[dir.length]!=='/') {
-        return dir+'/';
-    } else { return dir; 
-        }
-}
+app.use(bodyParser.urlencoded({extended: false}));
 
-const getTree = (dir) => {
-    const files = fs.readdirSync(dir);
-    let out='';
-    if (dir!=='/') {
-            out+= `<a href='_'>..</a><br>`;
-        }
-    files.forEach(el=>{
-        out+=`<a href=${el}>${el}</a><br>`;
-    });
-    return out;
-    
-}
-
-app.get('/',(req,res)=>{
-    
-    res.send(getTree(dir));
+app.get('/status', (req,res) => {
+    res.send('OK');
 })
 
-app.get('/:id',(req,res)=> {
-    const param = req.params.id;
-    if (param == '_') {
-       
-        dir = path.dirname(dir);
-        res.redirect('back');
-    } else {
-        fs.stat(includeTrailingBackSlash(dir)+param, (err, stats) => {
-            if (err) {
-              console.error(err)
-            return
-            }
-            if (stats.isFile()){
-                res.sendFile(includeTrailingBackSlash(dir)+param);
-            } else {
-                dir=includeTrailingBackSlash(dir) + param;
-                
-                res.redirect('back');
-            } 
-        });
-    }    
-})
+app.use('/chats',ChatRouter);
+app.use('/messages',MessageRouter);
 
-app.listen(3000,()=>{
-    console.log('server is listen on 3000 port');
-})
+app.listen(3000, ()=>console.log('server started on 3000 port'));
